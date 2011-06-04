@@ -135,8 +135,8 @@ burrito(code, trace)
 
 Given some source `code` and a function `trace`, walk the ast line-by-line.
 
-.wrap(wrapper, src)
--------------------
+burrito.wrap(wrapper, src)
+--------------------------
 
 Wrap all the expressions in some source code `src` (potentially inlined as
 function) with `wrapper`, a function or name of a function to execute.
