@@ -1,7 +1,4 @@
-// all in one file
-
 var burrito = require('burrito');
-var fs = require('fs');
 
 var src = burrito.wrap(
     function (code) {
@@ -16,4 +13,6 @@ var src = burrito.wrap(
         });
     }
 );
-console.log(src);
+
+var vm = require('vm');
+vm.runInNewContext(src, { console : console });
