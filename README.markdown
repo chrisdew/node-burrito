@@ -13,6 +13,8 @@ examples
 inline
 ------
 
+This example traps all of the expressions and prints them.
+
 ````javascript
 var burrito = require('burrito');
 
@@ -73,6 +75,56 @@ output:
       start: { line: 5, column: 12 },
       end: { line: 5, column: 30 } }
 
+trace
+-----
+
+This example is a silly little error printing lib that could be extended to do
+full stack traces:
+
+````javascript
+var burrito = require('burrito');
+var fs = require('fs');
+
+var src = fs.readFileSync(__dirname + '/src.js');
+var wrapped = burrito.wrap('trace', src);
+
+var vm = require('vm');
+var sprintf = require('sprintf').sprintf;
+
+var code = null;
+
+try {
+    vm.runInNewContext(wrapped, {
+        trace : function (c) { code = c }
+    });
+}
+catch (err) {
+    console.log(err.toString());
+    
+    var lines = src.toString()
+        .split('\n')
+        .slice(Math.max(0, code.start.line - 2), code.end.line + 3)
+        .map(function (line, i) {
+            var lineNum = code.start.line - 2 + i;
+            var active = code.start.line <= lineNum && lineNum <= code.end.line;
+            return sprintf('%3s', lineNum) + (active ? ' >> ' : ' :: ') + line;
+        })
+        .join('\n')
+    ;
+    console.log(lines);
+}
+````
+
+output:
+
+    $ node trace.js 
+    ReferenceError: c is not defined
+      1 ::     // simple stats
+      2 ::     a = 5;
+      3 >>     c += a + b;
+      4 ::     "foo";
+      5 :: 
+
 methods
 =======
 
@@ -88,6 +140,13 @@ Given some source `code` and a function `trace`, walk the ast line-by-line.
 
 Wrap all the expressions in some source code `src` (potentially inlined as
 function) with `wrapper`, a function or name of a function to execute.
+
+installation
+============
+
+With [npm](http://npmjs.org) you can just:
+
+    npm install burrito
 
 kudos
 =====
