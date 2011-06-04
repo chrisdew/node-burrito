@@ -1,7 +1,7 @@
 var jsp = require("uglify-js").parser;
 var pro = require("uglify-js").uglify;
 
-module.exports = function (code, trace) {
+var burrito = module.exports = function (code, trace) {
     code = code.toString();
     
     // true for the third arg specifies that we want
@@ -19,9 +19,10 @@ module.exports = function (code, trace) {
             // without the `analyzing' hack, w.walk(this) would re-enter here leading
             // to infinite recursion
             analyzing.push(this);
-            ret = [ "splice",
-                    [ [ "stat", trace(this) ],
-                      w.walk(this) ]];
+            ret = [
+                "splice",
+                [ [ "stat", trace(this) ], w.walk(this) ]
+            ];
             analyzing.pop(this);
         }
         return ret;
@@ -67,9 +68,50 @@ module.exports = function (code, trace) {
         "with"        : do_stat,
         "conditional" : do_cond,
         "binary"      : do_binary
-    }, function(){
-            return w.walk(ast);
-    });
+    }, function () { return w.walk(ast) });
     
     return pro.gen_code(new_ast, { beautify : true });
+};
+
+burrito.wrap = function (wrapper, src) {
+    var wrapName = typeof wrapper === 'string' ? wrapper : wrapper.name;
+    
+    var fsrc = src.toString();
+    if (typeof src === 'function' && src.name === '') {
+        fsrc = fsrc.replace(/^function \(/, function () {
+            return 'function __anonymous_'
+                + Math.floor(Math.random() * Math.pow(2,32)).toString(16)
+                + '('
+            ;
+        });
+    }
+    
+    var postSrc = burrito(fsrc, function (line, comment) {
+        var code = pro.gen_code(line, { beautify : true });
+        var data = line[0];
+        
+        var args = []
+        if (!comment) comment = ""
+        if (typeof data === "object") {
+            code = code.split(/\n/).shift()
+            args = [
+                [ "string", data.toString() ],
+                [ "string", code ],
+                [ "num", data.start.line ],
+                [ "num", data.start.col ],
+                [ "num", data.end.line ],
+                [ "num", data.end.col ]
+            ];
+        }
+        else {
+            args = [ [ "string", data ], [ "string", code ] ];
+        }
+        return [ "call", [ "name", wrapName ], args ];
+    });
+    
+    if (typeof wrapper === 'function') {
+        postSrc = wrapper.toString() + '\n' + postSrc;
+    }
+    
+    return postSrc;
 };
