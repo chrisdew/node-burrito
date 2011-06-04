@@ -12,7 +12,7 @@ exports.trace = function () {
     
     try {
         vm.runInNewContext(wrapped, {
-            trace : function (c) { code = c }
+            trace : function (x) { code = x }
         });
         assert.fail('should have thrown');
     }
@@ -21,5 +21,23 @@ exports.trace = function () {
         assert.deepEqual(err.arguments, [ 'c' ]);
         assert.equal(code.start.line, 3);
         assert.equal(code.end.line, 3);
+    }
+    
+    try {
+        vm.runInNewContext(wrapped, {
+            trace : function (x) { code = x },
+            a : 100,
+            b : 200,
+            c : 300,
+            console : { log : function () {} },
+        });
+    }
+    catch (err) {
+        assert.equal(err.type, 'non_object_property_load');
+        assert.deepEqual(err.arguments, [ 'moo', undefined ]);
+        assert.equal(code.start.line, 39);
+        assert.equal(code.end.line, 39);
+        assert.equal(code.statement, 'stat');
+        assert.equal(code.line, 'undefined.moo;');
     }
 };
