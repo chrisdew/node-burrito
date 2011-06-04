@@ -74,16 +74,11 @@ var burrito = module.exports = function (code, trace) {
 };
 
 burrito.wrap = function (wrapper, src) {
-    var wrapName = typeof wrapper === 'string' ? wrapper : wrapper.name;
+    var wrapName = generateName(6);
     
     var fsrc = src.toString();
-    if (typeof src === 'function' && src.name === '') {
-        fsrc = fsrc.replace(/^function \(/, function () {
-            return 'function __anonymous_'
-                + Math.floor(Math.random() * Math.pow(2,32)).toString(16)
-                + '('
-            ;
-        });
+    if (typeof src === 'function') {
+        fsrc = '(' + fsrc + ')();\n';
     }
     
     var postSrc = burrito(fsrc, function (line, comment) {
@@ -109,9 +104,30 @@ burrito.wrap = function (wrapper, src) {
         return [ "call", [ "name", wrapName ], args ];
     });
     
-    if (typeof wrapper === 'function') {
-        postSrc = wrapper.toString() + '\n' + postSrc;
+    return 'function ' + wrapName
+        + ' (stat, line, startLine, startCol, endLine, endCol) {'
+            + '(' + wrapper.toString() + ')({'
+                + 'statement : stat, '
+                + 'line : line, '
+                + 'start : { line : startLine, column : startCol }, '
+                + 'end : { line : endLine, column : endCol }'
+            + '})'
+        + '}\n'
+        + postSrc
+    ;
+};
+
+function generateName (len) {
+    var name = '';
+    var lower = '$'.charCodeAt(0);
+    var upper = 'z'.charCodeAt(0);
+    
+    while (name.length < len) {
+        var c = String.fromCharCode(Math.floor(
+            Math.random() * (upper - lower + 1) + lower
+        ));
+        if ((name + c).match(/^[A-Za-z_$][A-Za-z0-9_$]*$/)) name += c;
     }
     
-    return postSrc;
-};
+    return name;
+}
