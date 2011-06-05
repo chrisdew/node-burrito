@@ -88,7 +88,7 @@ burrito.wrap = function (wrapper, src) {
         var args = []
         if (!comment) comment = ""
         if (typeof data === "object") {
-            code = code.split(/\n/).shift()
+            code = code.split(/\n/).shift();
             args = [
                 [ "string", data.toString() ],
                 [ "string", code ],
@@ -117,7 +117,7 @@ burrito.wrap = function (wrapper, src) {
     ;
 };
 
-function generateName (len) {
+var generateName = burrito.generateName = function (len) {
     var name = '';
     var lower = '$'.charCodeAt(0);
     var upper = 'z'.charCodeAt(0);
