@@ -1,5 +1,6 @@
 var jsp = require("uglify-js").parser;
 var pro = require("uglify-js").uglify;
+var vm = require('vm');
 
 var burrito = module.exports = function (code, trace) {
     code = code.toString();
@@ -74,7 +75,7 @@ var burrito = module.exports = function (code, trace) {
 };
 
 burrito.wrap = function (wrapper, src) {
-    var wrapName = generateName(6);
+    var wrapName = burrito.generateName(6);
     
     var fsrc = src.toString();
     if (typeof src === 'function') {
@@ -117,7 +118,32 @@ burrito.wrap = function (wrapper, src) {
     ;
 };
 
-var generateName = burrito.generateName = function (len) {
+burrito.microwave = function (src, context, cb) {
+    if (!cb) { cb = context; context = {} }
+    if (!context) context = {};
+    
+    var fsrc = src.toString();
+    if (typeof src === 'function') fsrc = '(' + fsrc + ')();\n';
+    
+    var lines = [];
+    
+    var wrapName = burrito.generateName(6);
+    context[wrapName] = function (i) {
+        var line = lines[i];
+        var code = pro.gen_code(line, { beautify : true });
+        cb(line, code);
+    };
+    
+    var postSrc = burrito(fsrc, function (line) {
+        var i = lines.length;
+        lines.push(line);
+        return [ "call", [ "name", wrapName ], [ [ 'num', i ] ] ];
+    });
+    
+    return vm.runInNewContext(postSrc, context);
+};
+
+burrito.generateName = function (len) {
     var name = '';
     var lower = '$'.charCodeAt(0);
     var upper = 'z'.charCodeAt(0);
@@ -130,4 +156,4 @@ var generateName = burrito.generateName = function (len) {
     }
     
     return name;
-}
+};
