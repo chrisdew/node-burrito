@@ -1,48 +1,44 @@
-var par = require('uglify-js').parser;
+var parse = require('uglify-js').parser.parse;
 var ug = require('uglify-js').uglify;
 
+var deparse = function (ast, b) {
+    return ug.gen_code(ast, { beautify : b === 'undefined' ? true : b });
+};
+
+var traverse = require('traverse');
+
 var burrito = module.exports = function (code, cb) {
-    var ast = par.parse(code.toString(), false, true);
-    var w = ug.ast_walker();
+    var ast = parse(code.toString(), false, true);
     
-    var names = [
-        'stat', 'label', 'break', 'continue', 'debugger', 'var', 'const',
-        'return', 'throw', 'try', 'defun', 'if', 'while', 'do', 'for',
-        'for-in', 'switch', 'with', 'conditional', 'binary'
-    ];
-    
-    var visiting = [];
-    
-    var fn = function (name, xs) {
-console.dir([ name, xs ]);
-        return xs;
-    };
-    
-    var ast_ = w.with_walkers(
-        names.reduce(function (acc, name) {
-            acc[name] = function (c, x, y) {
-                if (name === 'binary') {
-                    return fn(name, [ this[0], c, w.walk(x), w.walk(y) ]);
+    var ast_ = traverse(ast).map(function (node) {
+        var state = this;
+        
+        var ann = Array.isArray(node) && node[0]
+        && typeof node[0] === 'object' && node[0].name
+            ? node[0]
+            : null
+        ;
+        
+        if (ann) {
+            cb({
+                name : ann.name,
+                node : node,
+                wrap : function (s) {
+                    var subsrc = deparse(node, false);
+                    
+                    var src = s.replace(/%s/g, function () {
+                        return subsrc;
+                    });
+                    var expr = parse(src);
+                    
+                    state.update(expr, true);
                 }
-                else if (name === 'conditional') {
-                    return fn(name, [ this[0], w.walk(c), w.walk(x), w.walk(y) ]);
-                }
-                else {
-                    var ret;
-                    if (visiting.indexOf(this) < 0) {
-                        visiting.push(this);
-                        ret = fn(name, [ this[0], w.walk(this) ]);
-                        visiting.pop(this);
-                    }
-                    return ret;
-                }
-            };
-            return acc;
-        }, {}),
-        function () { return w.walk(ast) }
-    );
+            });
+        }
+    });
+//console.log(require('util').inspect(ast_, null, 10));
     
-    return ug.gen_code(ast_, { beautify: true });
+    return deparse(ast_);
 };
 
 burrito.generateName = function (len) {
