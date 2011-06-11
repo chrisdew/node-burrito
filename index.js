@@ -29,9 +29,13 @@ var burrito = module.exports = function (code, cb) {
                     })
                 );
                 
-                var src = s.replace(/%s/g, function () {
-                    return subsrc;
-                });
+                var src = typeof s === 'function'
+                    ? s(subsrc)
+                    : s.toString().replace(/%s/g, function () {
+                        return subsrc
+                    })
+                ;
+                
                 var expr = parse(src);
                 
                 state.update(expr, true);

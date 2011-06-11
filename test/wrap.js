@@ -48,7 +48,7 @@ exports.wrapCalls = function () {
 };
 
 exports.wrapFn = function () {
-    var src = burrito('f(g(h()))', function (node) {
+    var src = burrito('f(g(h(5)))', function (node) {
         if (node.name === 'call') {
             node.wrap(function (s) {
                 return 'z(' + s + ')';
@@ -60,11 +60,14 @@ exports.wrapFn = function () {
     assert.equal(
         vm.runInNewContext(src, {
             f : function (x) { return x + 1 },
-            g : function () { return x + 2 },
-            h : function () { return 5 },
-            z : function (x) { return x * 10 },
+            g : function (x) { return x + 2 },
+            h : function (x) { return x + 3 },
+            z : function (x) {
+                times ++;
+                return x * 10;
+            },
         }),
-        ((((5 * 10) + 2) * 10) + 1) * 10
+        (((((5 + 3) * 10) + 2) * 10) + 1) * 10
     );
     assert.equal(times, 3);
 };
