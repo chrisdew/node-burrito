@@ -1,46 +1,48 @@
-var parse = require('uglify-js').parser.parse;
-var deparse = require('uglify-js').uglify.gen_code;
-
-var util = require('util');
-var dir = function (obj) {
-    console.log(util.inspect(obj, null, 10));
-};
-
-var vm = require('vm');
-var traverse = require('traverse');
+var par = require('uglify-js').parser;
+var ug = require('uglify-js').uglify;
 
 var burrito = module.exports = function (code, cb) {
-    var ast = parse(code.toString());
-    var ast_ = traverse(ast).map(function (node) {
-        var state = this;
-        
-        if (Array.isArray(node)) {
-            var cnode = {
-                name : node[0],
-                wrap : function (wrapper) {
-                    cnode.code = wrapper.replace(/%s/g, function () {
-                        return cnode.code;
-                    });
+    var ast = par.parse(code.toString(), false, true);
+    var w = ug.ast_walker();
+    
+    var names = [
+        'stat', 'label', 'break', 'continue', 'debugger', 'var', 'const',
+        'return', 'throw', 'try', 'defun', 'if', 'while', 'do', 'for',
+        'for-in', 'switch', 'with', 'conditional', 'binary'
+    ];
+    
+    var visiting = [];
+    
+    var fn = function (name, xs) {
+console.dir([ name, xs ]);
+        return xs;
+    };
+    
+    var ast_ = w.with_walkers(
+        names.reduce(function (acc, name) {
+            acc[name] = function (c, x, y) {
+                if (name === 'binary') {
+                    return fn(name, [ this[0], c, w.walk(x), w.walk(y) ]);
+                }
+                else if (name === 'conditional') {
+                    return fn(name, [ this[0], w.walk(c), w.walk(x), w.walk(y) ]);
+                }
+                else {
+                    var ret;
+                    if (visiting.indexOf(this) < 0) {
+                        visiting.push(this);
+                        ret = fn(name, [ this[0], w.walk(this) ]);
+                        visiting.pop(this);
+                    }
+                    return ret;
                 }
             };
-            
-            var cached = { code : null };
-            Object.defineProperty(cnode, 'code', {
-                get : function () {
-                    if (!cached.code) cached.code = deparse(state.node);
-                    return cached.code;
-                },
-                set : function (s) {
-                    cached.code = null;
-                    state.update(parse(s));
-                }
-            });
-            
-            cb(cnode);
-        }
-    });
+            return acc;
+        }, {}),
+        function () { return w.walk(ast) }
+    );
     
-    return deparse(ast_);
+    return ug.gen_code(ast_, { beautify: true });
 };
 
 burrito.generateName = function (len) {
