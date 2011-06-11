@@ -10,6 +10,24 @@ coverage tool.
 examples
 ========
 
+wrap
+----
+
+examples/wrap.js
+
+````javascript
+var burrito = require('burrito');
+
+var src = burrito('f() && g()', function (node) {
+    if (node.name === 'call') node.wrap('qqq(%s)');
+});
+
+console.log(src);
+````
+
+output:
+
+    qqq(f())&&qqq(g())
 
 methods
 =======
@@ -37,4 +55,5 @@ With [npm](http://npmjs.org) you can just:
 kudos
 =====
 
-Shamelessly lifted from isaacs's nifty tmp/instrument.js thingy from uglify-js.
+Heavily inspired by (and previously mostly lifted outright from) isaacs's nifty
+tmp/instrument.js thingy from uglify-js.
