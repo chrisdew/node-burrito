@@ -2,7 +2,7 @@ var parse = require('uglify-js').parser.parse;
 var ug = require('uglify-js').uglify;
 
 var deparse = function (ast, b) {
-    return ug.gen_code(ast, { beautify : b === 'undefined' ? true : b });
+    return ug.gen_code(ast, { beautify : b });
 };
 
 var traverse = require('traverse');
@@ -10,7 +10,7 @@ var traverse = require('traverse');
 var burrito = module.exports = function (code, cb) {
     var ast = parse(code.toString(), false, true);
     
-    var ast_ = traverse(ast).map(function (node) {
+    var ast_ = traverse(ast).map(function mapper (node) {
         var state = this;
         
         var ann = Array.isArray(node) && node[0]
@@ -24,7 +24,11 @@ var burrito = module.exports = function (code, cb) {
                 name : ann.name,
                 node : node,
                 wrap : function (s) {
-                    var subsrc = deparse(node, false);
+                    var subsrc = deparse(
+                        traverse(node).map(function (x) {
+                            if (!this.isRoot) return mapper.call(this, x)
+                        })
+                    );
                     
                     var src = s.replace(/%s/g, function () {
                         return subsrc;
@@ -36,9 +40,8 @@ var burrito = module.exports = function (code, cb) {
             });
         }
     });
-//console.log(require('util').inspect(ast_, null, 10));
     
-    return deparse(ast_);
+    return deparse(parse(deparse(ast_)), true);
 };
 
 burrito.generateName = function (len) {
