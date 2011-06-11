@@ -18,7 +18,7 @@ var burrito = module.exports = function (code, cb) {
             var cnode = {
                 name : node[0],
                 wrap : function (wrapper) {
-                    cnode.code = wrapper.replace(/%s/, function () {
+                    cnode.code = wrapper.replace(/%s/g, function () {
                         return cnode.code;
                     });
                 }
