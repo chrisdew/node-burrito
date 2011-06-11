@@ -46,3 +46,25 @@ exports.wrapCalls = function () {
     assert.equal(times.bbb, 1);
     assert.equal(times.qqq, 4);
 };
+
+exports.wrapFn = function () {
+    var src = burrito('f(g(h()))', function (node) {
+        if (node.name === 'call') {
+            node.wrap(function (s) {
+                return 'z(' + s + ')';
+            });
+        }
+    });
+    
+    var times = 0;
+    assert.equal(
+        vm.runInNewContext(src, {
+            f : function (x) { return x + 1 },
+            g : function () { return x + 2 },
+            h : function () { return 5 },
+            z : function (x) { return x * 10 },
+        }),
+        ((((5 * 10) + 2) * 10) + 1) * 10
+    );
+    assert.equal(times, 3);
+};
