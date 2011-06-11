@@ -25,6 +25,7 @@
         "test" : "expresso"
     },
     "dependencies" : {
+        "traverse" : "0.4.x"
     },
     "devDependencies" : {
         "expresso" : "=0.7.x"
