@@ -19,26 +19,24 @@ var burrito = module.exports = function (code, cb) {
             : null
         ;
         
-        if (ann) {
-            cb({
-                name : ann.name,
-                node : node,
-                wrap : function (s) {
-                    var subsrc = deparse(
-                        traverse(node).map(function (x) {
-                            if (!this.isRoot) return mapper.call(this, x)
-                        })
-                    );
-                    
-                    var src = s.replace(/%s/g, function () {
-                        return subsrc;
-                    });
-                    var expr = parse(src);
-                    
-                    state.update(expr, true);
-                }
-            });
-        }
+        if (ann) cb({
+            name : ann.name,
+            node : node,
+            wrap : function (s) {
+                var subsrc = deparse(
+                    traverse(node).map(function (x) {
+                        if (!this.isRoot) return mapper.call(this, x)
+                    })
+                );
+                
+                var src = s.replace(/%s/g, function () {
+                    return subsrc;
+                });
+                var expr = parse(src);
+                
+                state.update(expr, true);
+            }
+        });
     });
     
     return deparse(parse(deparse(ast_)), true);

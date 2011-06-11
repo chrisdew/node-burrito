@@ -18,7 +18,7 @@ examples/wrap.js
 ````javascript
 var burrito = require('burrito');
 
-var src = burrito('f() && g()', function (node) {
+var src = burrito('f() && g(h())\nfoo()', function (node) {
     if (node.name === 'call') node.wrap('qqq(%s)');
 });
 
@@ -27,7 +27,9 @@ console.log(src);
 
 output:
 
-    qqq(f())&&qqq(g())
+    qqq(f()) && qqq(g(qqq(h())));
+
+    qqq(foo());
 
 methods
 =======
