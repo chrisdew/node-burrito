@@ -62,9 +62,11 @@ function wrapNode (state, cb) {
                 }
             }
             else {
-                src = s.toString().replace(/%s/g, function () {
-                    return subsrc
-                });
+                src = s.toString()
+                    .replace(/%s/g, function () {
+                        return subsrc
+                    })
+                ;
                 
                 if (self.name === 'binary') {
                     src = src
