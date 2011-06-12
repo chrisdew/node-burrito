@@ -87,6 +87,9 @@ expression.
 If `s` is a function, it is called with the stringified current expression and
 should return a new stringified expression.
 
+If the `node.name === "binary"`, you get the subterms "%a" and "%b" to play with
+too. These subterms are applied if `s` is a function too: `s(expr, a, b)`.
+
 node.node
 ---------
 
