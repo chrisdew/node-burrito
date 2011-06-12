@@ -6,6 +6,7 @@ var deparse = function (ast, b) {
 };
 
 var traverse = require('traverse');
+var vm = require('vm');
 
 var burrito = module.exports = function (code, cb) {
     var ast = parse(code.toString(), false, true);
@@ -44,6 +45,11 @@ var burrito = module.exports = function (code, cb) {
     });
     
     return deparse(parse(deparse(ast_)), true);
+};
+
+burrito.microwave = function (code, context, cb) {
+    var src = burrito(code, cb);
+    return vm.runInNewContext(src, context);
 };
 
 burrito.generateName = function (len) {
