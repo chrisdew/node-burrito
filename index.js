@@ -11,41 +11,50 @@ var vm = require('vm');
 var burrito = module.exports = function (code, cb) {
     var ast = parse(code.toString(), false, true);
     
-    var ast_ = traverse(ast).map(function mapper (node) {
-        var state = this;
-        
-        var ann = Array.isArray(node) && node[0]
-        && typeof node[0] === 'object' && node[0].name
-            ? node[0]
-            : null
-        ;
-        
-        if (ann) cb({
-            name : ann.name,
-            node : node,
-            wrap : function (s) {
-                var subsrc = deparse(
-                    traverse(node).map(function (x) {
-                        if (!this.isRoot) return mapper.call(this, x)
-                    })
-                );
-                
-                var src = typeof s === 'function'
-                    ? s(subsrc)
-                    : s.toString().replace(/%s/g, function () {
-                        return subsrc
-                    })
-                ;
-                
-                var expr = parse(src);
-                
-                state.update(expr, true);
-            }
-        });
+    var ast_ = traverse(ast).map(function mapper () {
+        wrapNode(this, cb);
     });
     
     return deparse(parse(deparse(ast_)), true);
 };
+
+function wrapNode (state, cb) {
+    var node = state.node;
+    
+    var ann = Array.isArray(node) && node[0]
+    && typeof node[0] === 'object' && node[0].name
+        ? node[0]
+        : null
+    ;
+    
+    if (!ann) return undefined;
+    
+    var self = {
+        name : ann.name,
+        node : node,
+        wrap : function (s) {
+            var subsrc = deparse(
+                traverse(node).map(function (x) {
+                    if (!this.isRoot) wrapNode(this, cb)
+                })
+            );
+            
+            var src = typeof s === 'function'
+                ? s(subsrc)
+                : s.toString().replace(/%s/g, function () {
+                    return subsrc
+                })
+            ;
+            
+            var expr = parse(src);
+            state.update(expr, true);
+        },
+    };
+    
+    if (cb) cb(self);
+    
+    return self;
+}
 
 burrito.microwave = function (code, context, cb) {
     if (!cb) { cb = context; context = {} };
