@@ -25,7 +25,8 @@
         "test" : "expresso"
     },
     "dependencies" : {
-        "traverse" : ">=0.4.2 <0.5"
+        "traverse" : ">=0.4.2 <0.5",
+        "uglify-js" : "https://github.com/isaacs/UglifyJS/tarball/v1.0.2"
     },
     "devDependencies" : {
         "expresso" : "=0.7.x"
