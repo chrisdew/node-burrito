@@ -88,3 +88,22 @@ exports.binaryString = function () {
     
     assert.equal(res, 10 * (3*2 - 4*2));
 };
+
+exports.binaryFn = function () {
+    var src = 'z(x + y)';
+    var context = {
+        x : 3,
+        y : 4,
+        z : function (n) { return n * 10 },
+    };
+    
+    var res = burrito.microwave(src, context, function (node) {
+        if (node.name === 'binary') {
+            node.wrap(function (expr, a, b) {
+                return '(' + a + ')*2 - ' + '(' + b + ')*2';
+            });
+        }
+    });
+    
+    assert.equal(res, 10 * (3*2 - 4*2));
+};
