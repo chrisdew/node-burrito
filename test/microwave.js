@@ -24,3 +24,10 @@ exports.microwave = function () {
     assert.equal(res, (((((5 + 3) * 10) + 2) * 10) + 1) * 10);
     assert.equal(times, 3);
 };
+
+exports.emptyContext = function () {
+    var res = burrito.microwave('Math.sin(2)', function (node) {
+        if (node.name === 'num') node.wrap('Math.PI / %s');
+    });
+    assert.equal(res, 1);
+};

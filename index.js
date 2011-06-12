@@ -48,6 +48,9 @@ var burrito = module.exports = function (code, cb) {
 };
 
 burrito.microwave = function (code, context, cb) {
+    if (!cb) { cb = context; context = {} };
+    if (!context) context = {};
+    
     var src = burrito(code, cb);
     return vm.runInNewContext(src, context);
 };
