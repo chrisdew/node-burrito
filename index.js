@@ -32,6 +32,9 @@ function wrapNode (state, cb) {
     var self = {
         name : ann.name,
         node : node,
+        start : node[0].start,
+        end : node[0].end,
+        value : node.slice(1),
         wrap : function (s) {
             var subsrc = deparse(
                 traverse(node).map(function (x) {
@@ -39,17 +42,69 @@ function wrapNode (state, cb) {
                 })
             );
             
-            var src = typeof s === 'function'
-                ? s(subsrc)
-                : s.toString().replace(/%s/g, function () {
+            if (self.name === 'binary') {
+                var a = deparse(traverse(node[2]).map(function (x) {
+                    if (!this.isRoot) wrapNode(this, cb)
+                }));
+                var b = deparse(traverse(node[3]).map(function (x) {
+                    if (!this.isRoot) wrapNode(this, cb)
+                }));
+            }
+            
+            var src = '';
+            
+            if (typeof s === 'function') {
+                if (self.name === 'binary') {
+                    src = s(subsrc, a, b);
+                }
+                else {
+                    src = s(subsrc);
+                }
+            }
+            else {
+                src = s.toString().replace(/%s/g, function () {
                     return subsrc
-                })
-            ;
+                });
+                
+                if (self.name === 'binary') {
+                    src = src
+                        .replace(/%a/g, function () { return a })
+                        .replace(/%b/g, function () { return b })
+                    ;
+                }
+            }
             
             var expr = parse(src);
             state.update(expr, true);
         },
     };
+    
+    var cache = {};
+    
+    if (state.isRoot) self.parent = null;
+    else Object.defineProperty(self, 'parent', {
+        get : function () {
+            if (!cache.parent) {
+                var s = state;
+                var x;
+                do {
+                    s = s.parent;
+                    if (s) x = wrapNode(s);
+                } while (s && !x);
+                
+                cache.parent = x;
+            }
+            
+            return cache.parent;
+        }
+    });
+    
+    Object.defineProperty(self, 'source', {
+        get : function () {
+            if (!cache.source) cache.source = deparse(node);
+            return cache.source;
+        }
+    });
     
     if (cb) cb(self);
     
