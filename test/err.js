@@ -23,6 +23,7 @@ exports.syntaxError = function () {
         assert.fail('should have blown up');
     }
     catch (err) {
+        assert.ok(err.message.match(/unexpected/i));
         assert.ok(err instanceof SyntaxError);
         assert.ok(!err.stack.match(/uglify-js/));
     }

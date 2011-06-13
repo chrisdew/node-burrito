@@ -9,7 +9,12 @@ var traverse = require('traverse');
 var vm = require('vm');
 
 var burrito = module.exports = function (code, cb) {
-    var ast = parse(code.toString(), false, true);
+    try {
+        var ast = parse(code.toString(), false, true);
+    }
+    catch (err) {
+        throw new SyntaxError(err.message);
+    }
     
     var ast_ = traverse(ast).map(function mapper () {
         wrapNode(this, cb);
