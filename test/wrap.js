@@ -109,3 +109,24 @@ exports.binaryFn = function () {
     
     assert.equal(res, 10 * (3*2 - 4*2));
 };
+
+exports.intersperse = function () {
+    var src = '(' + (function () {
+        f();
+        g();
+    }).toString() + ')()';
+    
+    var times = { f : 0, g : 0, zzz : 0 };
+    
+    var context = {
+        f : function () { times.f ++ },
+        g : function () { times.g ++ },
+        zzz : function () { times.zzz ++ },
+    };
+    
+    burrito.microwave(src, context, function (node) {
+        if (node.name === 'stat') node.wrap('zzz();%s');
+    });
+    
+    assert.deepEqual(times, { f : 1, g : 1, zzz : 2 });
+};
