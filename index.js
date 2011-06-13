@@ -76,8 +76,14 @@ function wrapNode (state, cb) {
                 }
             }
             
-            var expr = parse(src);
-            state.update(expr, true);
+            try {
+                // without this try/catch the stack gets deep into uglify
+                var expr = parse(src);
+                state.update(expr, true);
+            }
+            catch (err) {
+                throw new SyntaxError('invalid node.wrap() expression');
+            }
         },
     };
     
