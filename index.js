@@ -82,7 +82,7 @@ function wrapNode (state, cb) {
                 state.update(expr, true);
             }
             catch (err) {
-                throw new SyntaxError('invalid node.wrap() expression');
+                throw new SyntaxError(err.message);
             }
         },
     };
