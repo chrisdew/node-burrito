@@ -40,6 +40,7 @@ function wrapNode (state, cb) {
         start : node[0].start,
         end : node[0].end,
         value : node.slice(1),
+        state : state,
         wrap : function (s) {
             var subsrc = deparse(
                 traverse(node).map(function (x) {
@@ -119,7 +120,7 @@ function wrapNode (state, cb) {
         }
     });
     
-    if (cb) cb(self);
+    if (cb) cb.call(state, self);
     
     return self;
 }

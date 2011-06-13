@@ -120,6 +120,11 @@ node.end
 
 The end  location of the expression, formatted the same as `node.start`.
 
+node.state
+----------
+
+The state of the traversal using traverse.
+
 node.source
 -----------
 

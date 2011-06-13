@@ -6,6 +6,8 @@ exports.wrapCalls = function () {
     var src = burrito('f() && g(h())\nfoo()', function (node) {
         if (node.name === 'call') node.wrap('qqq(%s)');
         if (node.name === 'binary') node.wrap('bbb(%s)');
+        assert.ok(node.state);
+        assert.equal(this, node.state);
     });
     
     var tg = setTimeout(function () {
