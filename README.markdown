@@ -90,6 +90,14 @@ should return a new stringified expression.
 If the `node.name === "binary"`, you get the subterms "%a" and "%b" to play with
 too. These subterms are applied if `s` is a function too: `s(expr, a, b)`.
 
+Protip: to insert multiple statements you can use javascript's lesser-known block
+syntax that it gets from C:
+
+````javascript
+if (node.name === 'stat') node.wrap('{ foo(); %s }')
+node.wrap('')
+````
+
 node.node
 ---------
 
