@@ -143,3 +143,6 @@ burrito.generateName = function (len) {
     
     return name;
 };
+
+burrito.parse = parse;
+burrito.deparse = deparse;
