@@ -9,9 +9,9 @@ exports.checkParent = function () {
             node.wrap('%a - %b');
         }
         else if (node.name === 'num') {
-            assert.equal(node.parent.value[0][0], 'dot');
+            assert.equal(node.parent().value[0][0], 'dot');
             
-            var fn = node.parent.value[0][2];
+            var fn = node.parent().value[0][2];
             if (fn === 'sin') {
                 node.wrap('Math.PI / 2');
             }

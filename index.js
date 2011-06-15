@@ -40,85 +40,81 @@ function wrapNode (state, cb) {
         start : node[0].start,
         end : node[0].end,
         value : node.slice(1),
-        state : state,
-        wrap : function (s) {
-            var subsrc = deparse(
-                traverse(node).map(function (x) {
-                    if (!this.isRoot) wrapNode(this, cb)
-                })
-            );
-            
+        state : state
+    };
+    
+    self.wrap = function (s) {
+        var subsrc = deparse(
+            traverse(node).map(function (x) {
+                if (!this.isRoot) wrapNode(this, cb)
+            })
+        );
+        
+        if (self.name === 'binary') {
+            var a = deparse(traverse(node[2]).map(function (x) {
+                if (!this.isRoot) wrapNode(this, cb)
+            }));
+            var b = deparse(traverse(node[3]).map(function (x) {
+                if (!this.isRoot) wrapNode(this, cb)
+            }));
+        }
+        
+        var src = '';
+        
+        if (typeof s === 'function') {
             if (self.name === 'binary') {
-                var a = deparse(traverse(node[2]).map(function (x) {
-                    if (!this.isRoot) wrapNode(this, cb)
-                }));
-                var b = deparse(traverse(node[3]).map(function (x) {
-                    if (!this.isRoot) wrapNode(this, cb)
-                }));
-            }
-            
-            var src = '';
-            
-            if (typeof s === 'function') {
-                if (self.name === 'binary') {
-                    src = s(subsrc, a, b);
-                }
-                else {
-                    src = s(subsrc);
-                }
+                src = s(subsrc, a, b);
             }
             else {
-                src = s.toString()
-                    .replace(/%s/g, function () {
-                        return subsrc
-                    })
-                ;
-                
-                if (self.name === 'binary') {
-                    src = src
-                        .replace(/%a/g, function () { return a })
-                        .replace(/%b/g, function () { return b })
-                    ;
-                }
+                src = s(subsrc);
             }
+        }
+        else {
+            src = s.toString()
+                .replace(/%s/g, function () {
+                    return subsrc
+                })
+            ;
             
-            try {
-                // without this try/catch the stack gets deep into uglify
-                var expr = parse(src);
-                state.update(expr, true);
+            if (self.name === 'binary') {
+                src = src
+                    .replace(/%a/g, function () { return a })
+                    .replace(/%b/g, function () { return b })
+                ;
             }
-            catch (err) {
-                throw new SyntaxError(err.message);
-            }
+        }
+        
+        try {
+            // without this try/catch the stack gets deep into uglify
+            var expr = parse(src);
+            state.update(expr, true);
+        }
+        catch (err) {
+            throw new SyntaxError(err.message);
         }
     };
     
     var cache = {};
     
-    if (state.isRoot) self.parent = null;
-    else Object.defineProperty(self, 'parent', {
-        get : function () {
-            if (!cache.parent) {
-                var s = state;
-                var x;
-                do {
-                    s = s.parent;
-                    if (s) x = wrapNode(s);
-                } while (s && !x);
-                
-                cache.parent = x;
-            }
+    self.parent = state.isRoot ? null : function () {
+        if (!cache.parent) {
+            var s = state;
+            var x;
+            do {
+                s = s.parent;
+                if (s) x = wrapNode(s);
+            } while (s && !x);
             
-            return cache.parent;
+            cache.parent = x;
         }
-    });
+        
+        return cache.parent;
+    };
     
-    Object.defineProperty(self, 'source', {
-        get : function () {
-            if (!cache.source) cache.source = deparse(node);
-            return cache.source;
-        }
-    });
+    self.source = function () {
+        if (!cache.source) cache.source = deparse(node);
+        return cache.source;
+    };
     
     if (cb) cb.call(state, self);
     
