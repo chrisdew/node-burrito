@@ -90,7 +90,7 @@ function wrapNode (state, cb) {
             catch (err) {
                 throw new SyntaxError(err.message);
             }
-        },
+        }
     };
     
     var cache = {};

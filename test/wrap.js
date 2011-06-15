@@ -125,8 +125,8 @@ exports.intersperse = function () {
     };
     
     burrito.microwave(src, context, function (node) {
-        if (node.name === 'stat') node.wrap('zzz();%s');
+        if (node.name === 'stat') node.wrap('{ zzz(); %s }');
     });
     
-    assert.deepEqual(times, { f : 1, g : 1, zzz : 2 });
+    assert.deepEqual(times, { f : 1, g : 1, zzz : 3 });
 };
