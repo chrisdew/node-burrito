@@ -125,15 +125,15 @@ node.state
 
 The state of the traversal using traverse.
 
-node.source
------------
+node.source()
+-------------
 
-A stringified version of the expression.
+Returns a stringified version of the expression.
 
-node.parent
------------
+node.parent()
+-------------
 
-The parent `node` or `null` if the node is the root element.
+Returns the parent `node` or `null` if the node is the root element.
 
 installation
 ============
