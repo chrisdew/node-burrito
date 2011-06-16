@@ -95,7 +95,6 @@ syntax that it gets from C:
 
 ````javascript
 if (node.name === 'stat') node.wrap('{ foo(); %s }')
-node.wrap('')
 ````
 
 node.node
