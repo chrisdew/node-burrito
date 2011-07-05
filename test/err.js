@@ -1,5 +1,5 @@
 var assert = require('assert');
-var burrito = require('burrito');
+var burrito = require('../');
 
 exports.wrapError = function () {
     try {
@@ -12,6 +12,9 @@ exports.wrapError = function () {
         assert.ok(err.message.match(/unexpected/i));
         assert.ok(err instanceof SyntaxError);
         assert.ok(!err.stack.match(/uglify-js/));
+        assert.equal(err.line, 0);
+        assert.equal(err.col, 8);
+        assert.equal(err.pos, 8);
     }
 };
 
