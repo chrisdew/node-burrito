@@ -1,20 +1,42 @@
-var parse = require('uglify-js').parser.parse;
-var ug = require('uglify-js').uglify;
+var uglify = require('uglify-js');
+var parser = uglify.parser;
+var parse = function (expr) {
+    if (typeof expr !== 'string') throw 'expression should be a string';
+    
+    try {
+        var ast = parser.parse.apply(null, arguments);
+    }
+    catch (err) {
+        if (err.message === undefined
+        || err.line === undefined
+        || err.col === undefined
+        || err.pos === undefined
+        ) { throw err }
+        
+        var e = new SyntaxError(
+            err.message
+            + '\n  at line ' + err.line + ':' + err.col + ' in expression:\n\n'
+            + '  ' + expr.split(/\r?\n/)[err.line]
+        );
+        
+        e.original = err;
+        e.line = err.line;
+        e.col = err.col;
+        e.pos = err.pos;
+        throw e;
+    }
+    return ast;
+};
 
 var deparse = function (ast, b) {
-    return ug.gen_code(ast, { beautify : b });
+    return uglify.uglify.gen_code(ast, { beautify : b });
 };
 
 var traverse = require('traverse');
 var vm = require('vm');
 
 var burrito = module.exports = function (code, cb) {
-    try {
-        var ast = parse(code.toString(), false, true);
-    }
-    catch (err) {
-        throw new SyntaxError(err.message);
-    }
+    var ast = parse(code.toString(), false, true);
     
     var ast_ = traverse(ast).map(function mapper () {
         wrapNode(this, cb);
@@ -84,14 +106,8 @@ function wrapNode (state, cb) {
             }
         }
         
-        try {
-            // without this try/catch the stack gets deep into uglify
-            var expr = parse(src);
-            state.update(expr, true);
-        }
-        catch (err) {
-            throw new SyntaxError(err.message);
-        }
+        var expr = parse(src);
+        state.update(expr, true);
     };
     
     var cache = {};

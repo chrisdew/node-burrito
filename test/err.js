@@ -13,9 +13,23 @@ exports.wrapError = function () {
         assert.ok(err instanceof SyntaxError);
         assert.ok(!err.stack.match(/uglify-js/));
         assert.equal(err.line, 0);
-        assert.equal(err.col, 8);
-        assert.equal(err.pos, 8);
+        assert.equal(err.col, 10);
+        assert.equal(err.pos, 10);
     }
+};
+
+exports.nonString = function () {
+    assert.throws(function () {
+        burrito.parse(new Buffer('[]'));
+    });
+    
+    assert.throws(function () {
+        burrito.parse(new String('[]'));
+    });
+    
+    assert.throws(function () {
+        burrito.parse();
+    });
 };
 
 exports.syntaxError = function () {
