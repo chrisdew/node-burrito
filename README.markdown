@@ -7,6 +7,8 @@ them.
 This is super useful if you want to roll your own stack traces or build a code
 coverage tool.
 
+![node.wrap("burrito")](http://substack.net/images/burrito.png)
+
 examples
 ========
 
