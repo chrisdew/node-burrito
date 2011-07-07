@@ -1,8 +1,7 @@
 burrito
 =======
 
-Burrito wraps up all javascript expressions in a trace function before executing
-them.
+Burrito makes it easy to do crazy stuff with the javascript AST.
 
 This is super useful if you want to roll your own stack traces or build a code
 coverage tool.
